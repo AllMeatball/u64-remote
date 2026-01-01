@@ -13,6 +13,7 @@ import (
 
 type U64Creds struct {
 	Address, Password string
+	EnableMessageBox bool
 }
 
 type U64Server struct {
