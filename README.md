@@ -1,5 +1,6 @@
 # U64 Remote
-Remotely send and run a .PRG file on a Commodore 64 Ultimate, (or any 1541u)
+Remotely send and run a .PRG file on a Commodore 64 Ultimate, (or any 1541u).
+Mostly that development with CBM prg studio is easier with the Commodore 64 Ultimate, and you don't need to copy files every time.
 
 
 ## Usage and Setup
