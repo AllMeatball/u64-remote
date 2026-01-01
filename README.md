@@ -4,14 +4,13 @@ Remotely send and run a .PRG file on a Commodore 64 Ultimate, (or any 1541u)
 
 ## Usage and Setup
 1. Setup the your device with the `creds.json` file in the config path (see the Config Path section)
-2. Write the contents of `creds.json` like this (replacing the values with your own):
+2. Write this into of `creds.json` in this format (replacing the values with your own):
 ```json
 {
     "Address": "http://192.x.x.x",
     "Password": "Password goes here if set on system"
 }
 ```
-
 3. Run the command with your prg file like the following:
 ```
 u64-ultimate [prg file]
