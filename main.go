@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"u64-remote/server"
+	"github.com/AllMeatball/u64-remote/server"
 )
 
 func main() {
