@@ -14,7 +14,7 @@ Mostly that development with CBM prg studio is easier with the Commodore 64 Ulti
 ```
 3. Run the command with your prg file like the following:
 ```
-u64-ultimate [prg file]
+u64-remote [prg file]
 ```
 
 ### Config Path
