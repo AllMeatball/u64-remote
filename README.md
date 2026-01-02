@@ -24,4 +24,4 @@ u64-remote [prg file]
 
 ## TODO
 * Figure out how to use data streams (e.g. for debug and video)
-
+* Add automattic C/I compiling
