@@ -2,8 +2,10 @@ package server
 
 import (
 	// "fmt"
+	"bytes"
 	"fmt"
 	"io"
+
 	// "io"
 	"net/http"
 	"net/url"
@@ -33,7 +35,7 @@ func NewU64Server(creds U64Creds) (U64Server, error) {
 	server.creds = creds
 
 	// test server connection
-	_, err := server.RestCall("GET", "/v1/version", nil)
+	_, err := server.RestCall("GET", "/v1/version", nil, nil)
 	if err != nil { return server, err }
 
 	return server, nil
@@ -65,8 +67,8 @@ func (self *U64Server) RunPRG(reader io.Reader) error {
 	return nil
 }
 
-func (self *U64Server) RestCall(method, path string, params map[string]string) ([]byte, error) {
-	req, err := self.CreateRestRequest(method, path, nil)
+func (self *U64Server) RestCall(method, path string, reader io.Reader, params map[string]string) ([]byte, error) {
+	req, err := self.CreateRestRequest(method, path, reader)
 	if err != nil { return nil, err }
 
 	query := req.URL.Query()
@@ -85,7 +87,7 @@ func (self *U64Server) RestCall(method, path string, params map[string]string) (
 }
 
 func (self *U64Server) PeekMemory(address uint16, length uint32) ([]byte, error) {
-	data, err := self.RestCall("GET", "/v1/machine:readmem", map[string]string{
+	data, err := self.RestCall("GET", "/v1/machine:readmem", nil, map[string]string{
 		"address": fmt.Sprintf("%04x", address),
 		"length":  fmt.Sprintf("%d", length),
 	})
@@ -95,22 +97,18 @@ func (self *U64Server) PeekMemory(address uint16, length uint32) ([]byte, error)
 	return data, nil
 }
 
-func (self *U64Server) PokeMemory(address uint16, data []byte) error {
-	hex_string := ""
-	for _, b := range data {
-		hex_string += fmt.Sprintf("%02x", b)
-	}
-
-	fmt.Println(hex_string)
-
-	data, err := self.RestCall("PUT", "/v1/machine:writemem", map[string]string{
+func (self *U64Server) PokeMemoryWithStream(address uint16, reader io.Reader) error {
+	_, err := self.RestCall("PUT", "/v1/machine:writemem", reader, map[string]string{
 		"address": fmt.Sprintf("%04x", address),
-		"data": hex_string,
 	})
 
 	if err != nil { return err }
 
 	return nil
+}
+
+func (self *U64Server) PokeMemory(address uint16, data []byte) error {
+	return self.PokeMemoryWithStream(address, bytes.NewBuffer(data))
 }
 
 func (self *U64Server) RestCallRaw2(req *http.Request) ([]byte, error) {
