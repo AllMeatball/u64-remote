@@ -19,6 +19,11 @@ const (
 const (
 	KEY_DEL_INS = 20
 	KEY_RETURN  = 13
+
+	KEY_CRSR_UP    = 145
+	KEY_CRSR_DOWN  = 17
+	KEY_CRSR_LEFT  = 157
+	KEY_CRSR_RIGHT = 29
 )
 
 const (
@@ -29,6 +34,28 @@ const (
 
 func StopTyping(server server.U64Server) {
 	server.PokeMemory(KEYBOARD_QUEUED_KEYS_OFS, []byte{0})
+}
+
+func GetBufferSize(server server.U64Server) (byte, error) {
+	key_queue_data, err := server.PeekMemory(KEYBOARD_QUEUED_KEYS_OFS, 1)
+	keys_in_queue := key_queue_data[0]
+
+	if err != nil {
+		return keys_in_queue, err
+	}
+
+
+	return keys_in_queue, nil
+}
+
+
+func IsBufferFull(server server.U64Server) (bool, error) {
+	keys_in_queue, err := GetBufferSize(server)
+	if err != nil {
+		return false, err
+	}
+
+	return keys_in_queue >= KEYBOARD_MAX_COUNT, nil
 }
 
 /*
@@ -91,6 +118,14 @@ func TypeBytes(server server.U64Server, keys []byte) {
 }
 
 func TypeChrCode(server server.U64Server, char byte) {
+	var c64_key []byte
+	c64_key = append(c64_key, char)
+
+	server.PokeMemory(KEYBOARD_BUFFER_OFS, c64_key)
+	server.PokeMemory(KEYBOARD_QUEUED_KEYS_OFS, []byte{1})
+}
+
+func AppendChrCode(server server.U64Server, char byte) {
 	var c64_key []byte
 	c64_key = append(c64_key, char)
 
