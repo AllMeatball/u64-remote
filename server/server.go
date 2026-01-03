@@ -3,6 +3,8 @@ package server
 import (
 	// "fmt"
 	"bytes"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 
@@ -25,10 +27,6 @@ type U64Server struct {
 type U64ResponseBase struct {
 	Errors []string `json:"errors"`
 }
-
-// type U64Version struct {
-// 	Errors []string `json:"errors"`
-// }
 
 func NewU64Server(creds U64Creds) (U64Server, error) {
 	server := U64Server{}
@@ -59,10 +57,9 @@ func (self *U64Server) RunPRG(reader io.Reader) error {
 
 	req.Header.Set("Content-Type", "application/octet-stream")
 
-	resp, err := self.RestCallRaw(req)
+	_, err = self.RestCallRaw(req)
 	if err != nil { return err }
 
-	_ = resp
 
 	return nil
 }
@@ -77,7 +74,7 @@ func (self *U64Server) RestCall(method, path string, reader io.Reader, params ma
 	}
 	req.URL.RawQuery = query.Encode()
 
-	data, err := self.RestCallRaw2(req)
+	data, err := self.RestCallRaw(req)
 	if err != nil { return nil, err }
 
 	// err = json.NewDecoder(body).Decode(&result)
@@ -113,10 +110,10 @@ func (self *U64Server) PokeMemory(address uint16, data []byte) error {
 	return self.PokeMemoryWithStream(address, bytes.NewBuffer(data))
 }
 
-func (self *U64Server) RestCallRaw2(req *http.Request) ([]byte, error) {
+func (self *U64Server) RestCallRaw(req *http.Request) ([]byte, error) {
 	// var result any
 
-	resp, err := self.RestCallRaw(req)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil { return nil, err }
 
 	// length := resp.ContentLength
@@ -125,17 +122,28 @@ func (self *U64Server) RestCallRaw2(req *http.Request) ([]byte, error) {
 	_, err = io.ReadAtLeast(resp.Body, data, int(resp.ContentLength))
 	if err != nil { return nil, err }
 
+	if resp.Header.Get("Content-Type") == "application/json" {
+		rest_response := U64ResponseBase{}
+		err = json.Unmarshal(data, &rest_response)
+		if err != nil { return nil, err }
+
+		if len(rest_response.Errors) > 0 {
+			err = nil
+
+			for i, err_text := range rest_response.Errors {
+				new_err := fmt.Errorf("REST Error %d: %s", i, err_text)
+				if err == nil {
+					err = new_err
+				} else {
+					err = errors.Join(err, new_err)
+				}
+			}
+			return nil, err
+		}
+	}
+
 	// fmt.Println(result.())
 
 	return data, nil
-}
-
-func (self *U64Server) RestCallRaw(req *http.Request) (*http.Response, error) {
-	// var result any
-	resp, err := http.DefaultClient.Do(req)
-
-	if err != nil { return nil, err }
-
-	return resp, nil
 }
 

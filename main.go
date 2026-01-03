@@ -44,5 +44,6 @@ func main() {
 	if err != nil { errHand_Fatal(err, creds.EnableMessageBox) }
 	defer prg.Close()
 
-	server.RunPRG(prg)
+	err = server.RunPRG(prg)
+	if err != nil { errHand_Fatal(err, creds.EnableMessageBox) }
 }
