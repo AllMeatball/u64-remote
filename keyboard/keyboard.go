@@ -31,53 +31,6 @@ func StopTyping(server server.U64Server) {
 	server.PokeMemory(KEYBOARD_QUEUED_KEYS_OFS, []byte{0})
 }
 
-// Commodore 64 Programmer's Reference Guide (Appendix C: ASCII and CHR$ codes)
-var priv_unicode_remap = map[rune]byte{
-	' ': 32,
-	'!': 33,
-	'"': 34,
-	'#': 35,
-	'$': 36,
-	'%': 37,
-	'&': 38,
-	'\x27': 39, // single quote
-	'(': 40,
-	')': 41,
-	'*': 42,
-	'+': 43,
-	',': 44,
-	'-': 45,
-	'.': 46,
-	'/': 47,
-
-	'0': 48,
-	'1': 49,
-	'2': 50,
-	'3': 51,
-	'4': 52,
-	'5': 53,
-	'6': 54,
-	'7': 55,
-	'8': 56,
-	'9': 57,
-
-	':': 58,
-	';': 59,
-	'<': 60,
-	'=': 61,
-	'>': 62,
-	'?': 63,
-	'@': 64,
-
-	'[': 91,
-	'£': 92,
-	']': 93,
-
-	// Pi
-	'Π': 126,
-	'π': 126,
-}
-
 /*
  * Sets shift flag bits.
  * Usage: keyboard.SetShiftFlag(SHFLAG_SHIFT, true)
