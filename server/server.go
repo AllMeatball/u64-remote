@@ -98,9 +98,11 @@ func (self *U64Server) PeekMemory(address uint16, length uint32) ([]byte, error)
 }
 
 func (self *U64Server) PokeMemoryWithStream(address uint16, reader io.Reader) error {
-	_, err := self.RestCall("PUT", "/v1/machine:writemem", reader, map[string]string{
+	data, err := self.RestCall("POST", "/v1/machine:writemem", reader, map[string]string{
 		"address": fmt.Sprintf("%04x", address),
 	})
+
+	_ = data
 
 	if err != nil { return err }
 
