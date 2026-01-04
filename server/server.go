@@ -128,16 +128,13 @@ func (self *U64Server) RestCallRaw(req *http.Request) ([]byte, error) {
 		if err != nil { return nil, err }
 
 		if len(rest_response.Errors) > 0 {
-			err = nil
+			err = fmt.Errorf("REST (%s):", req.URL.Path)
 
 			for i, err_text := range rest_response.Errors {
-				new_err := fmt.Errorf("REST Error %d: %s", i, err_text)
-				if err == nil {
-					err = new_err
-				} else {
-					err = errors.Join(err, new_err)
-				}
+				new_err := fmt.Errorf("errors[%d]: %s", i, err_text)
+				err = errors.Join(err, new_err)
 			}
+
 			return nil, err
 		}
 	}
