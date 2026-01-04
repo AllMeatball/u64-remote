@@ -32,8 +32,15 @@ const (
 	SHFLAG_CONTROL   = 4
 )
 
-func StopTyping(server server.U64Server) {
-	server.PokeMemory(KEYBOARD_QUEUED_KEYS_OFS, []byte{0})
+func StopTyping(server server.U64Server) error {
+	return server.PokeMemory(KEYBOARD_QUEUED_KEYS_OFS, []byte{0})
+}
+
+func GetQueuedKeys(server server.U64Server) (byte, error) {
+	key_queue_data, err := server.PeekMemory(KEYBOARD_QUEUED_KEYS_OFS, 1)
+	if err != nil { return 0, err }
+
+	return key_queue_data[0], nil
 }
 
 func GetBufferSize(server server.U64Server) (byte, error) {
@@ -64,9 +71,9 @@ func IsBufferFull(server server.U64Server) (bool, error) {
  *
  * NOTE: Currently this seems to not work (likely due to the key being raised after being set)
  */
-func SetShiftFlag(server server.U64Server, mask byte, is_down bool) {
+func SetShiftFlag(server server.U64Server, mask byte, is_down bool) error {
 	cur_shift_flag_bytes, err := server.PeekMemory(KEYBOARD_SHFLAG_OFS, 1)
-	_ = err
+	if err != nil { return err }
 
 	cur_shift_flag := cur_shift_flag_bytes[0]
 
@@ -74,10 +81,10 @@ func SetShiftFlag(server server.U64Server, mask byte, is_down bool) {
 		 cur_shift_flag |= mask
 	}
 
-	err = server.PokeMemory(KEYBOARD_SHFLAG_OFS, []byte{cur_shift_flag})
+	return server.PokeMemory(KEYBOARD_SHFLAG_OFS, []byte{cur_shift_flag})
 }
 
-func TypeBytes(server server.U64Server, keys []byte) {
+func TypeBytes(server server.U64Server, keys []byte) error {
 	slice_count  := len(keys) / 10
 	extra_keys := len(keys) % 10
 
@@ -99,8 +106,11 @@ func TypeBytes(server server.U64Server, keys []byte) {
 	// fmt.Println(keyboard_slices)
 
 	for _, slice := range keyboard_slices {
-		server.PokeMemory(KEYBOARD_BUFFER_OFS, slice)
-		server.PokeMemory(KEYBOARD_QUEUED_KEYS_OFS, []byte{byte(len(slice))})
+		err := server.PokeMemory(KEYBOARD_BUFFER_OFS, slice)
+		if err != nil { return err }
+
+		err  = server.PokeMemory(KEYBOARD_QUEUED_KEYS_OFS, []byte{byte(len(slice))})
+		if err != nil { return err }
 
 		key_queue_full := true
 		for key_queue_full {
@@ -115,22 +125,35 @@ func TypeBytes(server server.U64Server, keys []byte) {
 			key_queue_full = keys_in_queue > 1
 		}
 	}
+
+	return nil
 }
 
-func TypeChrCode(server server.U64Server, char byte) {
+func TypeChrCode(server server.U64Server, key byte) error {
 	var c64_key []byte
-	c64_key = append(c64_key, char)
+	c64_key = append(c64_key, key)
 
-	server.PokeMemory(KEYBOARD_BUFFER_OFS, c64_key)
-	server.PokeMemory(KEYBOARD_QUEUED_KEYS_OFS, []byte{1})
+	err := server.PokeMemory(KEYBOARD_BUFFER_OFS, c64_key)
+	if err != nil { return err }
+
+	err  = server.PokeMemory(KEYBOARD_QUEUED_KEYS_OFS, []byte{1})
+	if err != nil { return err }
+
+	return nil
 }
 
-func AppendChrCode(server server.U64Server, char byte) {
+func AppendChrCode(server server.U64Server, key byte) error {
 	var c64_key []byte
-	c64_key = append(c64_key, char)
+	c64_key = append(c64_key, key)
 
-	server.PokeMemory(KEYBOARD_BUFFER_OFS, c64_key)
-	server.PokeMemory(KEYBOARD_QUEUED_KEYS_OFS, []byte{1})
+
+	err := server.PokeMemory(KEYBOARD_BUFFER_OFS, c64_key)
+	if err != nil { return err }
+
+	err  = server.PokeMemory(KEYBOARD_QUEUED_KEYS_OFS, []byte{1})
+	if err != nil { return err }
+
+	return nil
 }
 
 func UnicodeToPet(char rune) byte {
@@ -148,7 +171,7 @@ func UnicodeToPet(char rune) byte {
 }
 
 
-func TypeString(server server.U64Server, str string) {
+func TypeString(server server.U64Server, str string) error {
 	var c64_keys []byte
 	for _, char := range str {
 		c64_key := UnicodeToPet(char)
@@ -156,5 +179,5 @@ func TypeString(server server.U64Server, str string) {
 		c64_keys = append(c64_keys, c64_key)
 	}
 
-	TypeBytes(server, c64_keys)
+	return TypeBytes(server, c64_keys)
 }
