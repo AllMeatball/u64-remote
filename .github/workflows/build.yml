@@ -38,6 +38,6 @@ jobs:
     - name: Upload
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.target }}-${{ matrix.arch }}
+        name: u64-remote-${{ matrix.target }}-${{ matrix.arch }}-${{ github.ref_name }}
         path: ci-build
       
