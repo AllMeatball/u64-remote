@@ -7,21 +7,9 @@ on:
   #   branches: [ "master", "workflows" ]
 
 jobs:
-  grab-tags:
-    name: Grab Git Tags
-    runs-on: ubuntu-latest
-    
-    outputs:
-      git-tag: ${{ steps.git-tag.outputs.tag }}
-    steps:
-      - uses: actions/checkout@v4
-      - id: git-tag
-        run: echo "tag=$(git describe --tags)" >> "$GITHUB_OUTPUT"
-
   upload:
     name: Generate Artifacts
     runs-on: ubuntu-latest
-    needs: grab-tags
 
     strategy:
       matrix:
@@ -30,6 +18,19 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
+
+      - name: Get version tag
+        id: get-tag
+        run: |
+          GIT_TAG=$(git describe)
+          RESULT=$?
+
+          if [ $RESULT -eq 0 ]; then
+            echo "tag=GIT_TAG" >> $GITHUB_OUTPUT
+            echo "Got version tag: $GIT_TAG"
+          else
+            exit 1
+          fi
   
       - name: Set up Go
         uses: actions/setup-go@v4
@@ -51,6 +52,6 @@ jobs:
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: u64-remote-${{ matrix.target }}-${{ matrix.arch }}-${{ needs.grab-tags.outputs.git-tag }}
+          name: u64-remote-${{ matrix.target }}-${{ matrix.arch }}-${{ steps.get-tag.outputs.tag }}
           path: ci-build
       
