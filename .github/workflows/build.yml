@@ -14,8 +14,10 @@ jobs:
     outputs:
       git-tag: ${{ steps.git-tag.outputs.tag }}
     steps:
+      - uses: actions/checkout@v4
       - id: git-tag
         run: echo "tag=$(git describe --tags)" >> "$GITHUB_OUTPUT"
+
   upload:
     name: Generate Artifacts
     runs-on: ubuntu-latest
