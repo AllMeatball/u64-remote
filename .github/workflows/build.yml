@@ -26,7 +26,7 @@ jobs:
 
     - name: Build
       run: |
-        # Windows
+        mkdir -p ci-build
         GOOS=${{ matrix.target }} GOARCH=${{ matrix.arch }} go build \
           -v \
           -o ci-build \
