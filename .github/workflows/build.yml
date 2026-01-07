@@ -3,8 +3,8 @@ name: Build
 on:
   push:
     branches: [ "master", "workflows" ]
-  # pull_request:
-  #   branches: [ "master", "workflows" ]
+  pull_request:
+    branches: [ "master", "workflows" ]
 
 jobs:
   upload:
@@ -22,7 +22,7 @@ jobs:
       - name: Get version tag
         id: get-tag
         run: |
-          GIT_TAG=$(git describe)
+          GIT_TAG=$(git describe --tags --always)
           RESULT=$?
 
           if [ $RESULT -eq 0 ]; then
