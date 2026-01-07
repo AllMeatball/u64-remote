@@ -22,6 +22,9 @@ jobs:
       - name: Get version tag
         id: get-tag
         run: |
+          # Fetch tags
+          git fetch --tags
+          
           GIT_TAG=$(git describe --tags --always)
           RESULT=$?
 
