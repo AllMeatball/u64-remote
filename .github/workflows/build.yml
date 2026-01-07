@@ -26,7 +26,7 @@ jobs:
           RESULT=$?
 
           if [ $RESULT -eq 0 ]; then
-            echo "tag=GIT_TAG" >> $GITHUB_OUTPUT
+            echo "tag=$GIT_TAG" >> $GITHUB_OUTPUT
             echo "Got version tag: $GIT_TAG"
           else
             exit 1
