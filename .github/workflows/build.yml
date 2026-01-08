@@ -6,9 +6,15 @@ on:
   pull_request:
     branches: [ "master", "workflows" ]
 
+permissions:
+  contents: write
+  pull-requests: none 
+  issues: none
+  packages: none
+
 jobs:
-  upload:
-    name: Generate Artifacts
+  build:
+    name: Generate artifacts
     runs-on: ubuntu-latest
 
     strategy:
@@ -59,4 +65,26 @@ jobs:
         with:
           name: u64-remote-${{ matrix.target }}-${{ matrix.arch }}-${{ steps.get-tag.outputs.tag }}
           path: ci-build
-      
+  release:
+    name: 'Release'
+    runs-on: ubuntu-latest
+    needs:
+      - build
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v7
+        with:
+          path: ci-build
+          merge-multiple: true
+
+      - name: Get uploadtool
+        uses: actions/checkout@v4
+        with:
+          repository: 'probonopd/uploadtool'
+          path: 'uploadtool'
+
+      - name: Upload continuous build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./uploadtool/upload.sh ci-build/*
