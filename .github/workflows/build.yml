@@ -93,5 +93,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # export UPLOADTOOL_ISPRERELEASE=true
+          export UPLOADTOOL_ISPRERELEASE=true
           ./uploadtool/upload.sh ci-build/*
