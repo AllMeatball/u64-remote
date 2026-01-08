@@ -55,6 +55,11 @@ jobs:
             -v \
             -o ci-build \
             ./...
+            
+          cd ci-build
+          zip -r \
+            "../u64-remote-${{ matrix.target }}-${{ matrix.arch }}-${{ steps.get-tag.outputs.tag }}.zip" \
+            .
   
           # TODO (Linux): use static musl for better compat on portablity
           # TODO (macOS): use signing key (using secrets API) and universal binary support
@@ -64,7 +69,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: u64-remote-${{ matrix.target }}-${{ matrix.arch }}-${{ steps.get-tag.outputs.tag }}
-          path: ci-build
+          path: u64-remote-${{ matrix.target }}-${{ matrix.arch }}-${{ steps.get-tag.outputs.tag }}.zip
   release:
     name: 'Release'
     runs-on: ubuntu-latest
@@ -80,6 +85,7 @@ jobs:
       - name: Get uploadtool
         uses: actions/checkout@v4
         with:
+          fetch-depth: 3
           repository: 'probonopd/uploadtool'
           path: 'uploadtool'
 
@@ -87,4 +93,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # export UPLOADTOOL_ISPRERELEASE=true
           ./uploadtool/upload.sh ci-build/*
